@@ -54,9 +54,16 @@ export default function VenueSection({ eventId, dayId, day, venue }) {
             </div>
           </div>
         ) : (
-          <div className="venue-section__title" onClick={() => setEditingVenue(true)}>
-            <h3>{venue.name}</h3>
-            {venue.notes && <pre className="venue-section__notes">{venue.notes}</pre>}
+          <div className="venue-section__title">
+            <h3 onClick={() => setEditingVenue(true)}>{venue.name}</h3>
+            {venue.notes && <pre className="venue-section__notes" onClick={() => setEditingVenue(true)}>{venue.notes}</pre>}
+            <button
+              className="venue-section__delete-btn"
+              onClick={() => { if (confirm(`Delete ${venue.name}?`)) deleteVenue(eventId, dayId, venue.id); }}
+              title="Remove stage"
+            >
+              &times;
+            </button>
           </div>
         )}
       </div>

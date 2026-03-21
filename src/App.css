@@ -458,11 +458,33 @@
   cursor: pointer;
 }
 
+.venue-section__title {
+  position: relative;
+}
+
 .venue-section__title h3 {
   font-size: 18px;
   font-weight: 700;
   color: #000;
   text-align: center;
+  cursor: pointer;
+}
+
+.venue-section__delete-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.venue-section__delete-btn:hover {
+  color: var(--danger);
 }
 
 .venue-section__notes {
