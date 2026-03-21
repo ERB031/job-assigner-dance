@@ -52,7 +52,24 @@ export function autoAssignVenue(venue, employees, roles, allEvents, relationship
 
   const totalShifts = newShifts.length;
 
-  // Second pass: fill empty slots
+  // Second pass: fix cross-venue double-bookings by replacing conflicting employees
+  for (let shiftIdx = 0; shiftIdx < newShifts.length; shiftIdx++) {
+    const shift = newShifts[shiftIdx];
+    const crossVenueSet = crossVenueAssignments[shiftIdx];
+    if (!crossVenueSet) continue;
+
+    for (const role of roles) {
+      const empId = shift.assignments[role];
+      if (!empId || empId === 'N/A') continue;
+      if (!crossVenueSet.has(empId)) continue;
+
+      // This employee is double-booked - clear them and find a replacement
+      shift.assignments[role] = null;
+      delete employeeShiftMap[empId];
+    }
+  }
+
+  // Third pass: fill empty slots (including ones we just cleared)
   for (let shiftIdx = 0; shiftIdx < newShifts.length; shiftIdx++) {
     const shift = newShifts[shiftIdx];
     for (const role of roles) {
