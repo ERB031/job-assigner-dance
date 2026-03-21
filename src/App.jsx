@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import EventView from './components/EventView';
 import EmployeeManager from './components/EmployeeManager';
 import RolesManager from './components/RolesManager';
+import ChemistryManager from './components/ChemistryManager';
 import './App.css';
 
 class ErrorBoundary extends React.Component {
@@ -59,6 +60,7 @@ function AppContent() {
         {activeView === 'schedule' && <EventView eventId={selectedEventId} />}
         {activeView === 'employees' && <EmployeeManager />}
         {activeView === 'roles' && <RolesManager />}
+        {activeView === 'chemistry' && <ChemistryManager />}
       </main>
     </div>
   );

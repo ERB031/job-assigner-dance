@@ -52,6 +52,12 @@ export default function Sidebar({ activeView, setActiveView, selectedEventId, se
           >
             Roles
           </button>
+          <button
+            className={`sidebar__nav-btn ${activeView === 'chemistry' ? 'active' : ''}`}
+            onClick={() => { setActiveView('chemistry'); onClose(); }}
+          >
+            Chemistry / Conflicts
+          </button>
         </nav>
 
         <div className="sidebar__section">

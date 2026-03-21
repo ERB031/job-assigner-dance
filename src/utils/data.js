@@ -48,17 +48,27 @@ export function createEvent(name) {
   };
 }
 
-export function createEmployee(name, qualifiedRoles) {
+const EMPLOYEE_COLORS = [
+  '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336',
+  '#00BCD4', '#E91E63', '#8BC34A', '#FF5722', '#3F51B5',
+  '#009688', '#FFC107', '#673AB7', '#CDDC39', '#795548',
+];
+
+let colorIndex = 0;
+
+export function createEmployee(name, qualifiedRoles, color) {
   return {
     id: createId(),
     name,
     qualifiedRoles: qualifiedRoles || [],
+    color: color || EMPLOYEE_COLORS[colorIndex++ % EMPLOYEE_COLORS.length],
   };
 }
 
 export function getDefaultData() {
   return {
     roles: [...DEFAULT_ROLES],
+    relationships: [],
     employees: [
       createEmployee('Nick', ['FOH Lead/Supervisor', 'Audio', 'Lighting', 'Switch Op']),
       createEmployee('Zion', ['Audio', 'Lighting', 'V-Wall']),

@@ -71,9 +71,14 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
     );
   }
 
+  const cellStyle = employee?.color && employeeId !== 'N/A'
+    ? { backgroundColor: employee.color + '30', borderLeft: `3px solid ${employee.color}` }
+    : {};
+
   return (
     <td
       className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isOver ? 'role-cell--over' : ''}`}
+      style={cellStyle}
       draggable={!!employeeId && employeeId !== 'N/A'}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}

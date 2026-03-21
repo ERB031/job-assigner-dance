@@ -2,8 +2,9 @@
  * Round-robin auto-assign employees to roles within a venue's shifts.
  * Each employee can only be assigned to one shift within a venue.
  * Picks the employee with the fewest total assignments for fairness.
+ * Respects chemistry (prefer together) and conflict (avoid together) relationships.
  */
-export function autoAssignVenue(venue, employees, roles, allEvents) {
+export function autoAssignVenue(venue, employees, roles, allEvents, relationships = []) {
   const assignmentCounts = getAssignmentCounts(employees, allEvents);
   const newShifts = venue.shifts.map(shift => ({
     ...shift,
@@ -23,10 +24,28 @@ export function autoAssignVenue(venue, employees, roles, allEvents) {
     }
   }
 
+  // Build relationship lookup
+  const conflicts = new Set();
+  const chemistry = new Set();
+  for (const rel of relationships) {
+    const key = [rel.emp1, rel.emp2].sort().join('|');
+    if (rel.type === 'conflict') conflicts.add(key);
+    else if (rel.type === 'chemistry') chemistry.add(key);
+  }
+
+  const hasConflict = (emp1, emp2) => conflicts.has([emp1, emp2].sort().join('|'));
+  const hasChemistry = (emp1, emp2) => chemistry.has([emp1, emp2].sort().join('|'));
+
+  // Get employees already assigned to a shift
+  const getShiftEmployees = (shift) =>
+    Object.values(shift.assignments).filter(id => id && id !== 'N/A');
+
   // Second pass: fill empty slots
   for (const shift of newShifts) {
     for (const role of roles) {
       if (shift.assignments[role]) continue; // already assigned or N/A
+
+      const shiftEmps = getShiftEmployees(shift);
 
       const candidates = employees
         .filter(emp => {
@@ -35,11 +54,19 @@ export function autoAssignVenue(venue, employees, roles, allEvents) {
           const assignedShift = employeeShiftMap[emp.id];
           if (assignedShift && assignedShift !== shift.id) return false;
           // Not already assigned to a role in this shift
-          const isInThisShift = Object.values(shift.assignments).includes(emp.id);
-          if (isInThisShift) return false;
+          if (shiftEmps.includes(emp.id)) return false;
+          // Check conflicts - skip if conflicts with anyone in this shift
+          if (shiftEmps.some(existing => hasConflict(emp.id, existing))) return false;
           return true;
         })
-        .sort((a, b) => (assignmentCounts[a.id] || 0) - (assignmentCounts[b.id] || 0));
+        .sort((a, b) => {
+          // Prefer employees with chemistry to existing shift members
+          const aChemScore = shiftEmps.filter(e => hasChemistry(a.id, e)).length;
+          const bChemScore = shiftEmps.filter(e => hasChemistry(b.id, e)).length;
+          if (bChemScore !== aChemScore) return bChemScore - aChemScore;
+          // Then by fewest assignments
+          return (assignmentCounts[a.id] || 0) - (assignmentCounts[b.id] || 0);
+        });
 
       if (candidates.length > 0) {
         const chosen = candidates[0];

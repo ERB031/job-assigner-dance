@@ -728,6 +728,200 @@
   gap: 6px;
 }
 
+/* ==================== Employee Color ==================== */
+.manager__name-color-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.manager__name-color-row input:not([type="color"]) {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 44px;
+}
+
+.manager__color-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.manager__color-label input[type="color"] {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  cursor: pointer;
+}
+
+.manager__color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+.manager__item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==================== Export Buttons ==================== */
+.event-view__export-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* ==================== Chemistry/Conflict ==================== */
+.chemistry-manager {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.chemistry-manager h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.chemistry-manager__add {
+  background: var(--surface);
+  padding: 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chemistry-manager__add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.chemistry-manager__add-row select {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 44px;
+}
+
+.chemistry-manager__type-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.chemistry-manager__type-toggle button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.chemistry-manager__type-toggle button.active-conflict {
+  background: #ffebee;
+  border-color: var(--danger);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.chemistry-manager__type-toggle button.active-chemistry {
+  background: #e8f5e9;
+  border-color: #4CAF50;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.chemistry-manager__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chemistry-manager__item {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.chemistry-manager__item--conflict {
+  border-left: 3px solid var(--danger);
+}
+
+.chemistry-manager__item--chemistry {
+  border-left: 3px solid #4CAF50;
+}
+
+.chemistry-manager__item-label {
+  font-size: 14px;
+}
+
+.chemistry-manager__item-type {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.chemistry-manager__item-type--conflict {
+  background: #ffebee;
+  color: var(--danger);
+}
+
+.chemistry-manager__item-type--chemistry {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  .app__header,
+  .sidebar,
+  .event-view__export-bar,
+  .event-view__add-venue,
+  .venue-section__actions {
+    display: none !important;
+  }
+
+  .app__main {
+    padding: 0;
+  }
+
+  .venue-section {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .role-cell:hover {
+    background: inherit;
+  }
+}
+
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
   .app__main {

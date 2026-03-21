@@ -9,8 +9,8 @@ export function AppProvider({ children }) {
   const [data, setData] = useLocalStorage('job-assigner-data', getDefaultData());
 
   // -- Employees --
-  const addEmployee = useCallback((name, qualifiedRoles) => {
-    setData(d => ({ ...d, employees: [...d.employees, createEmployee(name, qualifiedRoles)] }));
+  const addEmployee = useCallback((name, qualifiedRoles, color) => {
+    setData(d => ({ ...d, employees: [...d.employees, createEmployee(name, qualifiedRoles, color)] }));
   }, [setData]);
 
   const updateEmployee = useCallback((id, updates) => {
@@ -214,13 +214,28 @@ export function AppProvider({ children }) {
     }));
   }, [setData]);
 
+  // -- Relationships (Chemistry/Conflict) --
+  const addRelationship = useCallback((emp1Id, emp2Id, type) => {
+    setData(d => {
+      const exists = (d.relationships || []).some(
+        r => (r.emp1 === emp1Id && r.emp2 === emp2Id) || (r.emp1 === emp2Id && r.emp2 === emp1Id)
+      );
+      if (exists) return d;
+      return { ...d, relationships: [...(d.relationships || []), { id: createId(), emp1: emp1Id, emp2: emp2Id, type }] };
+    });
+  }, [setData]);
+
+  const removeRelationship = useCallback((id) => {
+    setData(d => ({ ...d, relationships: (d.relationships || []).filter(r => r.id !== id) }));
+  }, [setData]);
+
   // -- Auto Assign --
   const runAutoAssign = useCallback((eventId, venueId) => {
     setData(d => {
       const event = d.events.find(e => e.id === eventId);
       const venue = event?.venues.find(v => v.id === venueId);
       if (!venue) return d;
-      const newShifts = autoAssignVenue(venue, d.employees, d.roles, d.events);
+      const newShifts = autoAssignVenue(venue, d.employees, d.roles, d.events, d.relationships || []);
       return {
         ...d,
         events: d.events.map(e => e.id === eventId
@@ -250,6 +265,7 @@ export function AppProvider({ children }) {
     try {
       const parsed = JSON.parse(jsonString);
       if (parsed.roles && parsed.employees && parsed.events) {
+        if (!parsed.relationships) parsed.relationships = [];
         setData(parsed);
         return true;
       }
@@ -269,6 +285,7 @@ export function AppProvider({ children }) {
     addVenueToEvent, updateVenue, deleteVenue,
     addShiftToVenue, updateShift, deleteShift,
     setAssignment, setAssignmentNote,
+    addRelationship, removeRelationship,
     runAutoAssign,
     exportData, importData, resetData,
   };
