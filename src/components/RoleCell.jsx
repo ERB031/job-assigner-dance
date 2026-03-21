@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useApp } from '../AppContext';
 
 export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, dragId }) {
   const { data, setAssignment, setAssignmentNote } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
+  const [isOver, setIsOver] = useState(false);
 
   const shift = data.events
     .find(e => e.id === eventId)?.venues
@@ -13,35 +13,36 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
     .find(s => s.id === shiftId);
 
   const note = shift?.notes?.[role] || '';
-
   const employee = data.employees.find(e => e.id === employeeId);
   const displayName = employeeId === 'N/A' ? 'N/A' : employee?.name || '';
+  const qualified = data.employees.filter(e => e.qualifiedRoles.includes(role));
 
-  const cellData = { eventId, venueId, shiftId, role, employeeId };
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setDragRef,
-    transform,
-    isDragging,
-  } = useDraggable({
-    id: dragId,
-    data: cellData,
-    disabled: !employeeId || employeeId === 'N/A',
-  });
-
-  const { setNodeRef: setDropRef, isOver } = useDroppable({
-    id: `drop-${dragId}`,
-    data: cellData,
-  });
-
-  const style = {
-    transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
-    opacity: isDragging ? 0.5 : 1,
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      eventId, venueId, shiftId, role, employeeId,
+    }));
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const qualified = data.employees.filter(e => e.qualifiedRoles.includes(role));
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsOver(true);
+  };
+
+  const handleDragLeave = () => setIsOver(false);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsOver(false);
+    try {
+      const from = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (from.shiftId === shiftId && from.role === role) return;
+      // Swap
+      setAssignment(from.eventId, from.venueId, from.shiftId, from.role, employeeId || null);
+      setAssignment(eventId, venueId, shiftId, role, from.employeeId || null);
+    } catch { /* ignore */ }
+  };
 
   if (isEditing) {
     return (
@@ -72,12 +73,13 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
 
   return (
     <td
-      ref={(node) => { setDragRef(node); setDropRef(node); }}
-      style={style}
-      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isDragging ? 'role-cell--dragging' : ''} ${isOver ? 'role-cell--over' : ''}`}
+      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isOver ? 'role-cell--over' : ''}`}
+      draggable={!!employeeId && employeeId !== 'N/A'}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       onClick={() => setIsEditing(true)}
-      {...attributes}
-      {...listeners}
     >
       <span className="role-cell__name">{displayName || '—'}</span>
       {note && <span className="role-cell__note">({note})</span>}

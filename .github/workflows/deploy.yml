@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/employee-role-assignment-app-qyjPy]
 
 permissions:
   contents: read

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { AppProvider, useApp } from './AppContext';
 import Sidebar from './components/Sidebar';
 import EventView from './components/EventView';
@@ -6,10 +6,35 @@ import EmployeeManager from './components/EmployeeManager';
 import RolesManager from './components/RolesManager';
 import './App.css';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 20, color: 'red', fontFamily: 'monospace' }}>
+          <h2>Something went wrong</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{this.state.error.message}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12 }}>{this.state.error.stack}</pre>
+          <button onClick={() => { localStorage.clear(); window.location.reload(); }}>
+            Reset App Data &amp; Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function AppContent() {
   const { data } = useApp();
   const [activeView, setActiveView] = useState('schedule');
-  const [selectedEventId, setSelectedEventId] = useState(data.events[0]?.id || null);
+  const [selectedEventId, setSelectedEventId] = useState(() => data.events[0]?.id || null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -41,8 +66,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
