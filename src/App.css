@@ -654,6 +654,18 @@
   font-weight: 600;
 }
 
+.role-cell--consecutive-warn {
+  background: #fff8e1 !important;
+  border-left: 3px solid #f9a825 !important;
+}
+
+.role-cell__consecutive-warn {
+  display: block;
+  font-size: 10px;
+  color: #e65100;
+  font-weight: 600;
+}
+
 .role-cell__name {
   display: block;
 }

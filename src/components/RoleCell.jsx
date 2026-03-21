@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext';
-import { getConflictingEmployees } from '../utils/autoAssign';
+import { getConflictingEmployees, getConsecutiveShiftCount } from '../utils/autoAssign';
 
 export default function RoleCell({ eventId, dayId, day, venueId, shiftId, shiftIdx, role, employeeId, dragId }) {
   const { data, setAssignment, setAssignmentNote } = useApp();
@@ -89,13 +89,16 @@ export default function RoleCell({ eventId, dayId, day, venueId, shiftId, shiftI
   // Check if this employee is double-booked on another stage
   const isDoubleBooked = employeeId && employeeId !== 'N/A' && crossVenueConflicts.has(employeeId);
 
+  // Check if this employee has 3+ consecutive shifts
+  const consecutiveCount = venue ? getConsecutiveShiftCount(employeeId, shiftIdx, venue.shifts) : 0;
+
   const cellStyle = employee?.color && employeeId !== 'N/A'
     ? { backgroundColor: employee.color + '30', borderLeft: `3px solid ${employee.color}` }
     : {};
 
   return (
     <td
-      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isOver ? 'role-cell--over' : ''} ${isDoubleBooked ? 'role-cell--conflict' : ''}`}
+      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isOver ? 'role-cell--over' : ''} ${isDoubleBooked ? 'role-cell--conflict' : ''} ${consecutiveCount ? 'role-cell--consecutive-warn' : ''}`}
       style={cellStyle}
       draggable={!!employeeId && employeeId !== 'N/A'}
       onDragStart={handleDragStart}
@@ -106,6 +109,7 @@ export default function RoleCell({ eventId, dayId, day, venueId, shiftId, shiftI
     >
       <span className="role-cell__name">{displayName || '—'}</span>
       {isDoubleBooked && <span className="role-cell__conflict-warn">On other stage!</span>}
+      {consecutiveCount > 0 && <span className="role-cell__consecutive-warn">{consecutiveCount} shifts in a row</span>}
       {note && <span className="role-cell__note">({note})</span>}
       {employeeId && employeeId !== 'N/A' && (
         <button

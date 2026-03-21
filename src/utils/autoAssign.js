@@ -2,7 +2,7 @@
  * Round-robin auto-assign employees to roles within a venue's shifts.
  * Respects:
  *  - Cross-venue conflict: no employee on two stages at same shift index
- *  - Back-to-back avoidance: soft penalty for consecutive shifts
+ *  - Back-to-back: allowed, but 3+ consecutive flagged as warning
  *  - Open+close avoidance: soft penalty for first AND last shift
  *  - Chemistry/conflict relationships
  *  - Active/inactive status & event exclusions
@@ -105,10 +105,10 @@ export function autoAssignVenue(venue, employees, roles, allEvents, relationship
           const bPrefer = bPref === 'prefer' ? 1 : 0;
           if (bPrefer !== aPrefer) return bPrefer - aPrefer;
 
-          // 3. Penalize back-to-back shifts (check adjacent shifts in this venue)
-          const aBackToBack = isBackToBack(a.id, shiftIdx, newShifts);
-          const bBackToBack = isBackToBack(b.id, shiftIdx, newShifts);
-          if (aBackToBack !== bBackToBack) return aBackToBack - bBackToBack;
+          // 3. Penalize 3+ consecutive shifts (but allow back-to-back)
+          const aConsec = wouldExceedConsecutive(a.id, shiftIdx, newShifts, 2);
+          const bConsec = wouldExceedConsecutive(b.id, shiftIdx, newShifts, 2);
+          if (aConsec !== bConsec) return aConsec - bConsec;
 
           // 4. Penalize open+close (first and last shift)
           const aOpenClose = wouldOpenAndClose(a.id, shiftIdx, totalShifts, newShifts);
@@ -137,21 +137,40 @@ export function autoAssignVenue(venue, employees, roles, allEvents, relationship
 }
 
 /**
- * Check if assigning empId at shiftIdx would create a back-to-back situation.
- * Returns 1 if yes, 0 if no.
+ * Count the length of the consecutive run that would include shiftIdx for empId.
+ * Looks backward and forward from the target shift.
  */
-function isBackToBack(empId, shiftIdx, shifts) {
-  // Check previous shift
-  if (shiftIdx > 0) {
-    const prevEmps = Object.values(shifts[shiftIdx - 1].assignments);
-    if (prevEmps.includes(empId)) return 1;
+function getConsecutiveRunLength(empId, shiftIdx, shifts) {
+  let count = 1; // the shift itself
+  // Count backward
+  for (let i = shiftIdx - 1; i >= 0; i--) {
+    if (Object.values(shifts[i].assignments).includes(empId)) count++;
+    else break;
   }
-  // Check next shift
-  if (shiftIdx < shifts.length - 1) {
-    const nextEmps = Object.values(shifts[shiftIdx + 1].assignments);
-    if (nextEmps.includes(empId)) return 1;
+  // Count forward
+  for (let i = shiftIdx + 1; i < shifts.length; i++) {
+    if (Object.values(shifts[i].assignments).includes(empId)) count++;
+    else break;
   }
-  return 0;
+  return count;
+}
+
+/**
+ * Returns 1 if assigning empId at shiftIdx would create a consecutive run
+ * longer than maxAllowed, 0 otherwise. Used as a soft penalty in sorting.
+ */
+function wouldExceedConsecutive(empId, shiftIdx, shifts, maxAllowed) {
+  return getConsecutiveRunLength(empId, shiftIdx, shifts) > maxAllowed ? 1 : 0;
+}
+
+/**
+ * Check if an employee has more than 2 consecutive shifts in a venue.
+ * Returns the length of the consecutive run including shiftIdx, or 0 if <= 2.
+ */
+export function getConsecutiveShiftCount(empId, shiftIdx, shifts) {
+  if (!empId || empId === 'N/A') return 0;
+  const run = getConsecutiveRunLength(empId, shiftIdx, shifts);
+  return run > 2 ? run : 0;
 }
 
 /**
