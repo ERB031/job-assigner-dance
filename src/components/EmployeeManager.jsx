@@ -16,9 +16,11 @@ export default function EmployeeManager() {
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
 
-  // Collect all unique shift labels across all events/venues
+  // Collect all unique shift labels across all events/days/venues
   const allShiftLabels = [...new Set(
-    data.events.flatMap(e => e.venues.flatMap(v => v.shifts.map(s => s.label)))
+    data.events.flatMap(e =>
+      (e.days || []).flatMap(d => d.venues.flatMap(v => v.shifts.map(s => s.label)))
+    )
   )];
 
   const handleAdd = () => {

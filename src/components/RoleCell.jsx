@@ -1,30 +1,35 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext';
+import { getConflictingEmployees } from '../utils/autoAssign';
 
-export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, dragId }) {
+export default function RoleCell({ eventId, dayId, day, venueId, shiftId, shiftIdx, role, employeeId, dragId }) {
   const { data, setAssignment, setAssignmentNote } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [isOver, setIsOver] = useState(false);
 
-  const shift = data.events
-    .find(e => e.id === eventId)?.venues
-    .find(v => v.id === venueId)?.shifts
-    .find(s => s.id === shiftId);
+  const currentDay = day;
+  const venue = currentDay?.venues.find(v => v.id === venueId);
+  const shift = venue?.shifts.find(s => s.id === shiftId);
 
   const note = shift?.notes?.[role] || '';
   const employee = data.employees.find(e => e.id === employeeId);
   const displayName = employeeId === 'N/A' ? 'N/A' : employee?.name || '';
+
   // Filter to active employees available for this event
   const available = data.employees.filter(e =>
     e.active !== false && !(e.eventExclusions || []).includes(eventId)
   );
+
+  // Get employees already assigned to same shift index in other venues
+  const crossVenueConflicts = currentDay ? getConflictingEmployees(currentDay, venueId, shiftIdx) : new Set();
+
   const qualified = available.filter(e => e.qualifiedRoles.includes(role));
   const unqualified = available.filter(e => !e.qualifiedRoles.includes(role));
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData('text/plain', JSON.stringify({
-      eventId, venueId, shiftId, role, employeeId,
+      eventId, dayId, venueId, shiftId, shiftIdx, role, employeeId,
     }));
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -44,9 +49,18 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
       const from = JSON.parse(e.dataTransfer.getData('text/plain'));
       if (from.shiftId === shiftId && from.role === role) return;
       // Swap
-      setAssignment(from.eventId, from.venueId, from.shiftId, from.role, employeeId || null);
-      setAssignment(eventId, venueId, shiftId, role, from.employeeId || null);
+      setAssignment(from.eventId, from.dayId, from.venueId, from.shiftId, from.role, employeeId || null);
+      setAssignment(eventId, dayId, venueId, shiftId, role, from.employeeId || null);
     } catch { /* ignore */ }
+  };
+
+  const renderOption = (emp) => {
+    const isConflict = crossVenueConflicts.has(emp.id);
+    return (
+      <option key={emp.id} value={emp.id} disabled={isConflict}>
+        {emp.name}{isConflict ? ' (on other stage)' : ''}
+      </option>
+    );
   };
 
   if (isEditing) {
@@ -56,25 +70,24 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
           autoFocus
           value={employeeId || ''}
           onChange={e => {
-            setAssignment(eventId, venueId, shiftId, role, e.target.value || null);
+            setAssignment(eventId, dayId, venueId, shiftId, role, e.target.value || null);
             setIsEditing(false);
           }}
           onBlur={() => setIsEditing(false)}
         >
           <option value="">-- Unassigned --</option>
           <option value="N/A">N/A</option>
-          {qualified.map(emp => (
-            <option key={emp.id} value={emp.id}>{emp.name}</option>
-          ))}
+          {qualified.map(renderOption)}
           <optgroup label="Other Available">
-            {unqualified.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.name}</option>
-            ))}
+            {unqualified.map(renderOption)}
           </optgroup>
         </select>
       </td>
     );
   }
+
+  // Check if this employee is double-booked on another stage
+  const isDoubleBooked = employeeId && employeeId !== 'N/A' && crossVenueConflicts.has(employeeId);
 
   const cellStyle = employee?.color && employeeId !== 'N/A'
     ? { backgroundColor: employee.color + '30', borderLeft: `3px solid ${employee.color}` }
@@ -82,7 +95,7 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
 
   return (
     <td
-      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isOver ? 'role-cell--over' : ''}`}
+      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isOver ? 'role-cell--over' : ''} ${isDoubleBooked ? 'role-cell--conflict' : ''}`}
       style={cellStyle}
       draggable={!!employeeId && employeeId !== 'N/A'}
       onDragStart={handleDragStart}
@@ -92,6 +105,7 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
       onClick={() => setIsEditing(true)}
     >
       <span className="role-cell__name">{displayName || '—'}</span>
+      {isDoubleBooked && <span className="role-cell__conflict-warn">On other stage!</span>}
       {note && <span className="role-cell__note">({note})</span>}
       {employeeId && employeeId !== 'N/A' && (
         <button
@@ -110,7 +124,7 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
           <input
             value={note}
             placeholder="e.g. Switch ~8:00"
-            onChange={e => setAssignmentNote(eventId, venueId, shiftId, role, e.target.value)}
+            onChange={e => setAssignmentNote(eventId, dayId, venueId, shiftId, role, e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setShowNoteInput(false); }}
             autoFocus
           />

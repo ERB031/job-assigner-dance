@@ -37,13 +37,23 @@ export function createVenue(name, color) {
   };
 }
 
+export function createDay(label) {
+  return {
+    id: createId(),
+    label,
+    venues: [
+      createVenue('ZENITH Stage', '#FFE900'),
+      createVenue('NOVA Stage', '#FF9800'),
+    ],
+  };
+}
+
 export function createEvent(name) {
   return {
     id: createId(),
     name,
-    venues: [
-      createVenue('ZENITH Stage', '#FFE900'),
-      createVenue('NOVA Stage', '#FF9800'),
+    days: [
+      createDay('Day 1'),
     ],
   };
 }
@@ -66,6 +76,38 @@ export function createEmployee(name, qualifiedRoles, color) {
     shiftPreferences: {},   // { shiftLabel: 'prefer' | 'avoid' }
     eventExclusions: [],    // event IDs this employee is excluded from
   };
+}
+
+/**
+ * Migrate old data format (event.venues) to new format (event.days[].venues).
+ */
+export function migrateData(data) {
+  if (!data || !data.events) return data;
+  let migrated = false;
+  const events = data.events.map(event => {
+    if (event.days) return event; // already migrated
+    migrated = true;
+    return {
+      ...event,
+      days: [{
+        id: createId(),
+        label: 'Day 1',
+        venues: event.venues || [],
+      }],
+    };
+  });
+  // Clean up old venues key from migrated events
+  if (migrated) {
+    return {
+      ...data,
+      relationships: data.relationships || [],
+      events: events.map(e => {
+        const { venues, ...rest } = e;
+        return rest.days ? rest : e;
+      }),
+    };
+  }
+  return data;
 }
 
 export function getDefaultData() {

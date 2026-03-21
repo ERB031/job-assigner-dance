@@ -348,6 +348,102 @@
   cursor: pointer;
 }
 
+/* ==================== Day Tabs ==================== */
+.day-tabs {
+  margin-bottom: 16px;
+}
+
+.day-tabs__list {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.day-tabs__tab {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.day-tabs__btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 40px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.day-tabs__btn:hover {
+  background: #f0f0f0;
+}
+
+.day-tabs__tab--active .day-tabs__btn {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.day-tabs__edit-btn,
+.day-tabs__delete-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-width: 28px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.day-tabs__edit-btn:hover {
+  background: #f0f0f0;
+}
+
+.day-tabs__delete-btn:hover {
+  background: #ffebee;
+  color: var(--danger);
+}
+
+.day-tabs__edit {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.day-tabs__edit input {
+  padding: 6px 8px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  font-size: 13px;
+  width: 120px;
+}
+
+.day-tabs__add {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.day-tabs__add input {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  width: 100px;
+  min-height: 36px;
+}
+
 /* ==================== Venue Section ==================== */
 .venue-section {
   margin-bottom: 24px;
@@ -544,6 +640,18 @@
   border-radius: 3px;
   font-size: 13px;
   min-height: 36px;
+}
+
+.role-cell--conflict {
+  background: #ffebee !important;
+  border-left: 3px solid var(--danger) !important;
+}
+
+.role-cell__conflict-warn {
+  display: block;
+  font-size: 10px;
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .role-cell__name {
@@ -1070,7 +1178,10 @@
   .sidebar,
   .event-view__export-bar,
   .event-view__add-venue,
-  .venue-section__actions {
+  .venue-section__actions,
+  .day-tabs__add,
+  .day-tabs__edit-btn,
+  .day-tabs__delete-btn {
     display: none !important;
   }
 

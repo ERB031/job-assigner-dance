@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../AppContext';
 import RoleCell from './RoleCell';
 
-export default function VenueSection({ eventId, venue }) {
+export default function VenueSection({ eventId, dayId, day, venue }) {
   const { data, updateVenue, deleteVenue, addShiftToVenue, updateShift, deleteShift, runAutoAssign } = useApp();
   const [editingVenue, setEditingVenue] = useState(false);
   const [venueName, setVenueName] = useState(venue.name);
@@ -14,7 +14,7 @@ export default function VenueSection({ eventId, venue }) {
   const [shiftEnd, setShiftEnd] = useState('');
 
   const saveVenue = () => {
-    updateVenue(eventId, venue.id, { name: venueName, color: venueColor, notes: venueNotes });
+    updateVenue(eventId, dayId, venue.id, { name: venueName, color: venueColor, notes: venueNotes });
     setEditingVenue(false);
   };
 
@@ -26,7 +26,7 @@ export default function VenueSection({ eventId, venue }) {
   };
 
   const saveShift = () => {
-    updateShift(eventId, venue.id, editingShiftId, { label: shiftLabel, startTime: shiftStart, endTime: shiftEnd });
+    updateShift(eventId, dayId, venue.id, editingShiftId, { label: shiftLabel, startTime: shiftStart, endTime: shiftEnd });
     setEditingShiftId(null);
   };
 
@@ -49,7 +49,7 @@ export default function VenueSection({ eventId, venue }) {
             <div className="venue-section__edit-actions">
               <button className="btn btn--small btn--primary" onClick={saveVenue}>Save</button>
               <button className="btn btn--small" onClick={() => setEditingVenue(false)}>Cancel</button>
-              <button className="btn btn--small btn--danger" onClick={() => { if (confirm('Delete venue?')) deleteVenue(eventId, venue.id); }}>Delete Venue</button>
+              <button className="btn btn--small btn--danger" onClick={() => { if (confirm('Delete venue?')) deleteVenue(eventId, dayId, venue.id); }}>Delete Venue</button>
             </div>
           </div>
         ) : (
@@ -62,10 +62,10 @@ export default function VenueSection({ eventId, venue }) {
 
       {/* Action buttons */}
       <div className="venue-section__actions">
-        <button className="btn btn--small btn--primary" onClick={() => runAutoAssign(eventId, venue.id)}>
+        <button className="btn btn--small btn--primary" onClick={() => runAutoAssign(eventId, dayId, venue.id)}>
           Auto-Assign
         </button>
-        <button className="btn btn--small" onClick={() => addShiftToVenue(eventId, venue.id)}>
+        <button className="btn btn--small" onClick={() => addShiftToVenue(eventId, dayId, venue.id)}>
           + Add Shift
         </button>
       </div>
@@ -86,7 +86,7 @@ export default function VenueSection({ eventId, venue }) {
                       <div className="shift-edit__actions">
                         <button className="btn btn--small btn--primary" onClick={saveShift}>Save</button>
                         <button className="btn btn--small" onClick={() => setEditingShiftId(null)}>Cancel</button>
-                        <button className="btn btn--small btn--danger" onClick={() => { deleteShift(eventId, venue.id, shift.id); setEditingShiftId(null); }}>Delete</button>
+                        <button className="btn btn--small btn--danger" onClick={() => { deleteShift(eventId, dayId, venue.id, shift.id); setEditingShiftId(null); }}>Delete</button>
                       </div>
                     </div>
                   ) : (
@@ -103,15 +103,18 @@ export default function VenueSection({ eventId, venue }) {
             {data.roles.map(role => (
               <tr key={role}>
                 <td className="schedule-table__role-name"><strong>{role}</strong></td>
-                {venue.shifts.map(shift => (
+                {venue.shifts.map((shift, shiftIdx) => (
                   <RoleCell
                     key={`${shift.id}-${role}`}
                     eventId={eventId}
+                    dayId={dayId}
+                    day={day}
                     venueId={venue.id}
                     shiftId={shift.id}
+                    shiftIdx={shiftIdx}
                     role={role}
                     employeeId={shift.assignments[role]}
-                    dragId={`${eventId}|${venue.id}|${shift.id}|${role}`}
+                    dragId={`${eventId}|${dayId}|${venue.id}|${shift.id}|${role}`}
                   />
                 ))}
               </tr>
