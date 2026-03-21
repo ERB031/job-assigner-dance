@@ -529,6 +529,10 @@
   background: #bbdefb !important;
 }
 
+.role-cell--over {
+  background: #c8e6c9 !important;
+}
+
 .role-cell--editing {
   padding: 4px;
 }

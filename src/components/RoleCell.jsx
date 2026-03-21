@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useApp } from '../AppContext';
 
 export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, dragId }) {
@@ -18,21 +17,27 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
   const employee = data.employees.find(e => e.id === employeeId);
   const displayName = employeeId === 'N/A' ? 'N/A' : employee?.name || '';
 
+  const cellData = { eventId, venueId, shiftId, role, employeeId };
+
   const {
     attributes,
     listeners,
-    setNodeRef,
+    setNodeRef: setDragRef,
     transform,
-    transition,
     isDragging,
-  } = useSortable({
+  } = useDraggable({
     id: dragId,
-    data: { eventId, venueId, shiftId, role, employeeId },
+    data: cellData,
+    disabled: !employeeId || employeeId === 'N/A',
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `drop-${dragId}`,
+    data: cellData,
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
     opacity: isDragging ? 0.5 : 1,
   };
 
@@ -67,9 +72,9 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
 
   return (
     <td
-      ref={setNodeRef}
+      ref={(node) => { setDragRef(node); setDropRef(node); }}
       style={style}
-      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isDragging ? 'role-cell--dragging' : ''}`}
+      className={`role-cell ${employeeId ? 'role-cell--filled' : 'role-cell--empty'} ${isDragging ? 'role-cell--dragging' : ''} ${isOver ? 'role-cell--over' : ''}`}
       onClick={() => setIsEditing(true)}
       {...attributes}
       {...listeners}

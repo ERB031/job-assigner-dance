@@ -33,12 +33,13 @@ export default function EventView({ eventId }) {
 
   const handleDragEnd = (e) => {
     const { active, over } = e;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
     const from = active.data.current;
     const to = over.data.current;
 
     if (!from || !to) return;
+    if (from.shiftId === to.shiftId && from.role === to.role) return;
 
     const fromEmpId = from.employeeId;
     const toEmpId = to.employeeId;
