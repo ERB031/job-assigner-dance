@@ -8,6 +8,7 @@ export default function VenueSection({ eventId, dayId, day, venue }) {
   const [venueName, setVenueName] = useState(venue.name);
   const [venueColor, setVenueColor] = useState(venue.color);
   const [venueNotes, setVenueNotes] = useState(venue.notes || '');
+  const [scheduleNotes, setScheduleNotes] = useState(venue.scheduleNotes || '');
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [shiftLabel, setShiftLabel] = useState('');
   const [shiftStart, setShiftStart] = useState('');
@@ -121,6 +122,18 @@ export default function VenueSection({ eventId, dayId, day, venue }) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Schedule notes at bottom */}
+      <div className="venue-section__schedule-notes">
+        <textarea
+          className="venue-section__schedule-notes-input"
+          value={scheduleNotes}
+          onChange={e => setScheduleNotes(e.target.value)}
+          onBlur={() => updateVenue(eventId, dayId, venue.id, { scheduleNotes })}
+          placeholder="Add notes for this schedule..."
+          rows={2}
+        />
       </div>
     </div>
   );
