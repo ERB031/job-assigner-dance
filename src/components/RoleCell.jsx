@@ -15,7 +15,12 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
   const note = shift?.notes?.[role] || '';
   const employee = data.employees.find(e => e.id === employeeId);
   const displayName = employeeId === 'N/A' ? 'N/A' : employee?.name || '';
-  const qualified = data.employees.filter(e => e.qualifiedRoles.includes(role));
+  // Filter to active employees available for this event
+  const available = data.employees.filter(e =>
+    e.active !== false && !(e.eventExclusions || []).includes(eventId)
+  );
+  const qualified = available.filter(e => e.qualifiedRoles.includes(role));
+  const unqualified = available.filter(e => !e.qualifiedRoles.includes(role));
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -61,8 +66,8 @@ export default function RoleCell({ eventId, venueId, shiftId, role, employeeId, 
           {qualified.map(emp => (
             <option key={emp.id} value={emp.id}>{emp.name}</option>
           ))}
-          <optgroup label="All Employees">
-            {data.employees.filter(e => !e.qualifiedRoles.includes(role)).map(emp => (
+          <optgroup label="Other Available">
+            {unqualified.map(emp => (
               <option key={emp.id} value={emp.id}>{emp.name}</option>
             ))}
           </optgroup>

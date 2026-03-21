@@ -62,6 +62,9 @@ export function createEmployee(name, qualifiedRoles, color) {
     name,
     qualifiedRoles: qualifiedRoles || [],
     color: color || EMPLOYEE_COLORS[colorIndex++ % EMPLOYEE_COLORS.length],
+    active: true,
+    shiftPreferences: {},   // { shiftLabel: 'prefer' | 'avoid' }
+    eventExclusions: [],    // event IDs this employee is excluded from
   };
 }
 

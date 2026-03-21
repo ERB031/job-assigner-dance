@@ -235,7 +235,7 @@ export function AppProvider({ children }) {
       const event = d.events.find(e => e.id === eventId);
       const venue = event?.venues.find(v => v.id === venueId);
       if (!venue) return d;
-      const newShifts = autoAssignVenue(venue, d.employees, d.roles, d.events, d.relationships || []);
+      const newShifts = autoAssignVenue(venue, d.employees, d.roles, d.events, d.relationships || [], eventId);
       return {
         ...d,
         events: d.events.map(e => e.id === eventId

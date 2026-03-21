@@ -2,14 +2,25 @@
  * Round-robin auto-assign employees to roles within a venue's shifts.
  * Each employee can only be assigned to one shift within a venue.
  * Picks the employee with the fewest total assignments for fairness.
- * Respects chemistry (prefer together) and conflict (avoid together) relationships.
+ * Respects:
+ *  - chemistry/conflict relationships
+ *  - active/inactive status
+ *  - event exclusions
+ *  - shift preferences (prefer/avoid)
  */
-export function autoAssignVenue(venue, employees, roles, allEvents, relationships = []) {
+export function autoAssignVenue(venue, employees, roles, allEvents, relationships = [], eventId = null) {
   const assignmentCounts = getAssignmentCounts(employees, allEvents);
   const newShifts = venue.shifts.map(shift => ({
     ...shift,
     assignments: { ...shift.assignments },
   }));
+
+  // Filter to only active employees not excluded from this event
+  const availableEmployees = employees.filter(emp => {
+    if (emp.active === false) return false;
+    if (eventId && emp.eventExclusions && emp.eventExclusions.includes(eventId)) return false;
+    return true;
+  });
 
   // Track which employees are assigned to a shift in this venue
   const employeeShiftMap = {};
@@ -47,7 +58,7 @@ export function autoAssignVenue(venue, employees, roles, allEvents, relationship
 
       const shiftEmps = getShiftEmployees(shift);
 
-      const candidates = employees
+      const candidates = availableEmployees
         .filter(emp => {
           if (!emp.qualifiedRoles.includes(role)) return false;
           // Not already assigned to a different shift in this venue
@@ -60,10 +71,23 @@ export function autoAssignVenue(venue, employees, roles, allEvents, relationship
           return true;
         })
         .sort((a, b) => {
+          // First: avoid employees who marked this shift as "avoid"
+          const aPref = a.shiftPreferences?.[shift.label];
+          const bPref = b.shiftPreferences?.[shift.label];
+          const aAvoid = aPref === 'avoid' ? 1 : 0;
+          const bAvoid = bPref === 'avoid' ? 1 : 0;
+          if (aAvoid !== bAvoid) return aAvoid - bAvoid;
+
+          // Prefer employees who marked this shift as "prefer"
+          const aPrefer = aPref === 'prefer' ? 1 : 0;
+          const bPrefer = bPref === 'prefer' ? 1 : 0;
+          if (bPrefer !== aPrefer) return bPrefer - aPrefer;
+
           // Prefer employees with chemistry to existing shift members
           const aChemScore = shiftEmps.filter(e => hasChemistry(a.id, e)).length;
           const bChemScore = shiftEmps.filter(e => hasChemistry(b.id, e)).length;
           if (bChemScore !== aChemScore) return bChemScore - aChemScore;
+
           // Then by fewest assignments
           return (assignmentCounts[a.id] || 0) - (assignmentCounts[b.id] || 0);
         });
