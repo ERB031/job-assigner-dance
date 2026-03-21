@@ -12,23 +12,14 @@
         <p>Loading Job Assigner...</p>
       </div>
     </div>
-    <script>
-      // Catch any JS errors and display them on screen
-      window.onerror = function(msg, src, line, col, err) {
-        var el = document.getElementById('loading-msg') || document.createElement('div');
-        el.id = 'error-display';
-        el.style.cssText = 'padding:20px;font-family:monospace;color:red;white-space:pre-wrap;word-break:break-word;';
-        el.innerHTML = '<h2>Error</h2><p>' + msg + '</p><p>Source: ' + src + ':' + line + ':' + col + '</p>';
-        if (!el.parentNode) document.body.prepend(el);
-      };
-      window.addEventListener('unhandledrejection', function(e) {
-        var el = document.getElementById('loading-msg') || document.createElement('div');
-        el.id = 'error-display';
-        el.style.cssText = 'padding:20px;font-family:monospace;color:red;white-space:pre-wrap;word-break:break-word;';
-        el.innerHTML = '<h2>Error</h2><p>' + (e.reason && e.reason.message || e.reason || 'Unknown') + '</p><p>' + (e.reason && e.reason.stack || '') + '</p>';
-        if (!el.parentNode) document.body.prepend(el);
-      });
+    <script type="module">
+      try {
+        await import('./src/main.jsx');
+      } catch (err) {
+        document.getElementById('root').innerHTML =
+          '<div style="padding:20px;color:red;font-family:monospace;white-space:pre-wrap;word-break:break-word;">' +
+          '<h2>Error</h2><p>' + (err.message || err) + '</p><pre>' + (err.stack || '') + '</pre></div>';
+      }
     </script>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
