@@ -29,10 +29,10 @@ export function createVenue(name, color) {
     color,
     notes: '',
     shifts: [
-      createShift('Shift 1', '6:00am', '10:30am'),
-      createShift('Shift 2', '10:30am', '2:30pm'),
-      createShift('Shift 3', '2:30pm', '6:30pm'),
-      createShift('Shift 4', '6:30pm', 'End of Awards'),
+      createShift('Shift 1', '7:30am', '11:30am'),
+      createShift('Shift 2', '11:30am', '3:30pm'),
+      createShift('Shift 3', '3:30pm', '7:30pm'),
+      createShift('Shift 4', '7:30pm', 'Awards Complete'),
     ],
   };
 }
@@ -111,37 +111,92 @@ export function migrateData(data) {
 }
 
 export function getDefaultData() {
+  // Create employees with stable IDs for pre-populated assignments
+  const employees = [
+    createEmployee('Nick', ['FOH Lead/Supervisor']),
+    createEmployee('Riley', ['FOH Lead/Supervisor', 'Audio']),
+    createEmployee('Zion', ['Audio']),
+    createEmployee('Tyler Franklin', ['Lighting']),
+    createEmployee('Nick Reno', ['Lighting']),
+    createEmployee('Tyler Warren', ['V-Wall']),
+    createEmployee('Christian', ['V-Wall']),
+    createEmployee('Chuck', ['Switch Op']),
+    createEmployee('Joan', ['Switch Op']),
+    createEmployee('Don', ['Switch Op']),
+    createEmployee('Ethan Beller', ['Cam Op']),
+    createEmployee('Jordan', ['Cam Op']),
+    createEmployee('Nicole', ['Lighting']),
+    createEmployee('Lorenzo', ['Cam Op']),
+    createEmployee('Hassan', ['Backstage Hand']),
+    createEmployee('Kanye', ['Switch Op', 'Backstage Hand']),
+    createEmployee('Andy', ['FOH Lead/Supervisor', 'V-Wall']),
+    createEmployee('Kam', ['FOH Lead/Supervisor']),
+    createEmployee('Justin', ['Audio']),
+    createEmployee('Owen', ['Audio']),
+    createEmployee('Ruby', ['Lighting']),
+    createEmployee('Nate Deason', ['V-Wall']),
+    createEmployee('Allan', ['Cam Op']),
+    createEmployee('Caleb', ['Backstage Hand']),
+  ];
+
+  // Build ID lookup
+  const empId = (name) => employees.find(e => e.name === name).id;
+
+  // -- ZENITH Stage --
+  const zenithShifts = [
+    { ...createShift('Shift 1', '7:30am', '11:30am'), assignments: {
+      'FOH Lead/Supervisor': empId('Nick'), 'Audio': empId('Riley'), 'Lighting': empId('Tyler Franklin'),
+      'V-Wall': empId('Tyler Warren'), 'Switch Op': empId('Chuck'), 'Cam Op': empId('Ethan Beller'), 'Backstage Hand': 'N/A',
+    }},
+    { ...createShift('Shift 2', '11:30am', '3:30pm'), assignments: {
+      'FOH Lead/Supervisor': empId('Nick'), 'Audio': empId('Zion'), 'Lighting': empId('Nick Reno'),
+      'V-Wall': empId('Christian'), 'Switch Op': empId('Joan'), 'Cam Op': empId('Jordan'), 'Backstage Hand': empId('Hassan'),
+    }, notes: { 'Cam Op': 'Nicole Shadow' }},
+    { ...createShift('Shift 3', '3:30pm', '7:30pm'), assignments: {
+      'FOH Lead/Supervisor': empId('Nick'), 'Audio': empId('Riley'), 'Lighting': empId('Tyler Franklin'),
+      'V-Wall': empId('Tyler Warren'), 'Switch Op': empId('Don'), 'Cam Op': empId('Lorenzo'), 'Backstage Hand': empId('Hassan'),
+    }},
+    { ...createShift('Shift 4', '7:30pm', 'Awards Complete'), assignments: {
+      'FOH Lead/Supervisor': empId('Riley'), 'Audio': empId('Zion'), 'Lighting': empId('Nick Reno'),
+      'V-Wall': empId('Christian'), 'Switch Op': empId('Joan'), 'Cam Op': empId('Ethan Beller'), 'Backstage Hand': empId('Kanye'),
+    }},
+  ];
+
+  const zenith = {
+    id: createId(), name: 'ZENITH Stage', color: '#FFE900',
+    notes: 'Doors Open 7:45am EST\nAwards 4:27pm EST\nAwards 10:03pm EST\nFinal Awards Complete~ 11:00pm EST',
+    shifts: zenithShifts,
+  };
+
+  // -- NOVA Stage --
+  const novaShifts = [
+    { ...createShift('Shift 1', '8:00am', '1:00pm'), assignments: {
+      'FOH Lead/Supervisor': empId('Andy'), 'Audio': empId('Justin'), 'Lighting': empId('Ruby'),
+      'V-Wall': empId('Nate Deason'), 'Switch Op': empId('Kanye'), 'Cam Op': empId('Jordan'), 'Backstage Hand': 'N/A',
+    }},
+    { ...createShift('Shift 2', '1:00pm', '6:00pm'), assignments: {
+      'FOH Lead/Supervisor': empId('Kam'), 'Audio': empId('Owen'), 'Lighting': empId('Nicole'),
+      'V-Wall': empId('Andy'), 'Switch Op': empId('Don'), 'Cam Op': empId('Allan'), 'Backstage Hand': empId('Caleb'),
+    }, notes: { 'Lighting': 'train Kam/Andy' }},
+    { ...createShift('Shift 3', '6:00pm', 'Awards Complete'), assignments: {
+      'FOH Lead/Supervisor': empId('Kam'), 'Audio': empId('Justin'), 'Lighting': empId('Ruby'),
+      'V-Wall': empId('Nate Deason'), 'Switch Op': empId('Chuck'), 'Cam Op': empId('Jordan'), 'Backstage Hand': empId('Caleb'),
+    }},
+  ];
+
+  const nova = {
+    id: createId(), name: 'NOVA Stage', color: '#FF9800',
+    notes: 'Doors open - 8:40AM\nMasterclass - 8:50am\nMasterclass - 9:35am\nMasterclass - 10:25am\nAwards - 3:37pm\nAwards- 9:38pm',
+    shifts: novaShifts,
+  };
+
+  const day = { id: createId(), label: 'Friday 3/27', venues: [zenith, nova] };
+  const event = { id: createId(), name: 'Long Island, NY Friday 3/27', days: [day] };
+
   return {
     roles: [...DEFAULT_ROLES],
     relationships: [],
-    employees: [
-      createEmployee('Nick', ['FOH Lead/Supervisor', 'Audio', 'Lighting', 'Switch Op']),
-      createEmployee('Zion', ['Audio', 'Lighting', 'V-Wall']),
-      createEmployee('Ruby', ['Lighting', 'V-Wall', 'Switch Op']),
-      createEmployee('Mishelle', ['V-Wall', 'Lighting']),
-      createEmployee('Don', ['Switch Op', 'Cam Op']),
-      createEmployee('Ethan Beller', ['Cam Op', 'Switch Op']),
-      createEmployee('Caleb', ['Backstage Hand', 'Cam Op']),
-      createEmployee('Riley', ['FOH Lead/Supervisor', 'Audio']),
-      createEmployee('Nik H', ['Audio', 'Lighting']),
-      createEmployee('Tyler Warren', ['Lighting', 'V-Wall']),
-      createEmployee('Kanye', ['V-Wall', 'Switch Op']),
-      createEmployee('Andy', ['FOH Lead/Supervisor', 'Switch Op']),
-      createEmployee('Joan', ['Cam Op', 'Switch Op']),
-      createEmployee('Hasaan', ['Backstage Hand', 'Cam Op']),
-      createEmployee('Kam', ['FOH Lead/Supervisor', 'Audio']),
-      createEmployee('Justin', ['Audio', 'Lighting']),
-      createEmployee('Will', ['Lighting', 'V-Wall']),
-      createEmployee('Christian', ['V-Wall', 'Switch Op']),
-      createEmployee('Nate', ['V-Wall', 'Lighting']),
-      createEmployee('Jordan', ['Switch Op', 'Cam Op']),
-      createEmployee('Allan Tan', ['Cam Op', 'Switch Op']),
-      createEmployee('Chuck', ['Switch Op', 'Cam Op']),
-      createEmployee('Owen', ['Audio', 'Lighting']),
-      createEmployee('Tyler Franklin', ['Lighting', 'V-Wall']),
-      createEmployee('Lorenzo', ['Cam Op', 'Backstage Hand']),
-      createEmployee('Terrence', ['Cam Op', 'Backstage Hand']),
-    ],
-    events: [createEvent('Cleveland, OH II: Saturday 3/21')],
+    employees,
+    events: [event],
   };
 }
